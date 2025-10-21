@@ -1,6 +1,6 @@
 # BlogAPI — README hoàn chỉnh
 
-Tài liệu này hướng dẫn chi tiết cách thiết lập, chạy, kiểm thử và chuẩn bị project để push/nộp (đặc biệt phù hợp cho nộp nhóm). Nội dung gồm: yêu cầu, cài đặt, biến môi trường, chạy server, cách test bằng curl/Postman, export database, giải thích cơ chế logout/blacklist, và checklist nộp.
+Tài liệu này hướng dẫn chi tiết cách thiết lập, chạy, kiểm thử và chuẩn bị project để push . Nội dung gồm: yêu cầu, cài đặt, biến môi trường, chạy server, cách test bằng curl/Postman, export database, giải thích cơ chế logout/blacklist, và checklist nộp.
 
 ---
 
