@@ -227,6 +227,47 @@ Sau khi chạy thành công:
 python run.py
 ```
 
+
+---
+
+## Các file/thư mục được tạo khi chạy (sau khi clone & run)
+
+Khi ai đó clone repository và chạy ứng dụng, code sẽ tự tạo một số file/thư mục phục vụ runtime. Bạn chỉ cần tự tạo file `.env` (copy từ `.env.example`) và điền giá trị phù hợp.
+
+- `uploads/received/` — được tạo khi ứng dụng khởi động hoặc khi có thao tác upload file đầu tiên. Ứng dụng đảm bảo thư mục này tồn tại (có handler startup trong `app/main.py`, và `app/utils.py` cũng tạo nếu cần).
+- File SQLite (ví dụ `test.db`) — sẽ được SQLite tạo tự động khi có lần ghi đầu tiên. Lệnh `Base.metadata.create_all(bind=engine)` trong `app/main.py` sẽ tạo các bảng nếu chưa tồn tại.
+- Thư mục `database/` — nếu `DATABASE_URL` trỏ tới một file trong subfolder (ví dụ `sqlite:///./data/test.db`), thư mục đó sẽ được tạo lúc startup.
+- `database/all_test_data.sql` — file dump do test suite tạo khi bạn chạy tests; file này không nên được theo dõi trong git (đã untrack trong repo này).
+
+Các file bạn phải tạo hoặc cấu hình thủ công:
+
+- `.env` — chứa các giá trị cấu hình local và secret (ví dụ: `SECRET_KEY`, `DATABASE_URL`). Vì lý do an toàn, `.env` không được lưu trên git; bạn cần copy từ `.env.example` và chỉnh lại giá trị.
+
+Sao chép `.env.example` thành `.env`:
+
+Windows (Command Prompt / PowerShell):
+
+```cmd
+copy .env.example .env
+```
+
+macOS / Linux:
+
+```bash
+cp .env.example .env
+```
+
+Lưu ý bảo mật:
+- Trước khi triển khai lên production, thay `SECRET_KEY` bằng một chuỗi ngẫu nhiên đủ dài. Ví dụ sinh nhanh bằng Python:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+- Nếu bạn nhận thấy `SECRET_KEY` hoặc bất kỳ secret nào đã từng được commit lên remote, hãy thực hiện rotate (tạo secret mới) ngay lập tức và xem xét xóa lịch sử git chứa secret đó (git-filter-repo / BFG) nếu cần.
+
+
+
 # Ghi chú: dùng `python run.py` nếu bạn muốn 1 entrypoint cố định (cấu hình, logging...)
 
 Docs:
