@@ -1,102 +1,156 @@
-# BlogAPI — README hoàn chỉnh
+# BlogAPI — README
 
-Tài liệu này hướng dẫn chi tiết cách thiết lập, chạy, kiểm thử và chuẩn bị project để push . Nội dung gồm: yêu cầu, cài đặt, biến môi trường, chạy server, cách test bằng curl/Postman, export database, giải thích cơ chế logout/blacklist, và checklist nộp.
-
----
-
-## Yêu cầu môi trường
-
-- Python 3.8+ (mình đã dùng Python 3.12 trong môi trường dev nhưng project tương thích từ 3.8+)
-- pip
-- SQLite3 (để export/import DB; không bắt buộc để chạy app vì repo có thể dùng file DB cục bộ)
-
-Khuyến nghị: tạo virtualenv để cô lập phụ thuộc.
+Tài liệu này hướng dẫn chi tiết cách thiết lập và chạy project trên Windows, macOS và Linux. Nội dung bao gồm: yêu cầu hệ thống, cài đặt theo từng hệ điều hành, cấu hình và chạy server.
 
 ---
 
-## Cài đặt nhanh (local)
+## Yêu cầu hệ thống
 
-1) Mở terminal và chuyển tới thư mục project (dùng đường dẫn tương đối hoặc đường dẫn nơi bạn clone repository):
+- Python 3.8+ (đã test trên Python 3.8 đến 3.12)
+- pip (trình quản lý gói Python)
+- SQLite3 (được cài sẵn trên macOS/Linux, Windows cần cài thêm)
 
-```bash
-# Thay <project-root> bằng đường dẫn tới thư mục chứa project trên máy của bạn
-cd "<project-root>"
-# ví dụ: cd "~/projects/Ltm-Swagger-UI-Project" hoặc cd "/home/user/work/Ltm-Swagger-UI-Project"
-```
+---
 
-2) Tạo & kích hoạt virtualenv (macOS/Linux zsh):
+## Cài đặt theo hệ điều hành
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-```
-# Ghi chú ngắn cho 2 lệnh phía trên:
-# - Tạo virtual environment (thư mục .venv) để cô lập phụ thuộc
-# - Kích hoạt virtualenv để các lệnh pip/pytest dùng môi trường này
+### Windows
 
-3) Cài dependencies:
+1. Cài đặt Python và pip:
+   - Tải Python từ [python.org](https://www.python.org/downloads/windows/)
+   - Khi cài đặt, **nhớ tích vào "Add Python to PATH"**
+   - Mở Command Prompt để kiểm tra:
+     ```cmd
+     python --version
+     pip --version
+     ```
 
-```bash
-pip install -r requirements.txt
-```
-```
-# Ghi chú: lệnh trên cài toàn bộ thư viện cần cho project từ file requirements.txt
+2. Tạo và kích hoạt môi trường ảo:
+   ```cmd
+   cd đường-dẫn-tới-thư-mục-project
+   python -m venv venv
+   venv\Scripts\activate
+   ```
 
-4) Tạo file `.env` ở gốc project (nếu chưa có). Mẫu:
+3. Cài đặt dependencies:
+   ```cmd
+   pip install -r requirements.txt
+   ```
+
+### macOS
+
+1. Cài Python (nếu chưa có):
+   ```bash
+   # Dùng Homebrew
+   brew install python
+   ```
+
+2. Tạo và kích hoạt môi trường ảo:
+   ```bash
+   cd đường-dẫn-tới-thư-mục-project
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. Cài đặt dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Linux (Ubuntu/Debian)
+
+1. Cài Python và pip (nếu chưa có):
+   ```bash
+   sudo apt update
+   sudo apt install python3 python3-pip python3-venv
+   ```
+
+2. Tạo và kích hoạt môi trường ảo:
+   ```bash
+   cd đường-dẫn-tới-thư-mục-project
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. Cài đặt dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+## Cấu hình và chạy server
+
+### 1. Tạo file môi trường
+
+Tạo file `.env` trong thư mục gốc của project với nội dung sau:
 
 ```env
 SECRET_KEY=replace-with-your-secret
 DATABASE_URL=sqlite:///./test.db
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-# (Không commit .env có secret key lên git!)
 ```
 
-5) Tạo database (nếu muốn) và khởi tạo tables (app sẽ tự tạo tables khi import `app.main`):
+### 2. Khởi chạy server
 
+Có 2 cách để chạy server, chọn 1 trong 2:
+
+#### Cách 1: Dùng script run.py (Đề xuất cho người mới)
+
+**Windows:**
+```cmd
+python run.py
+```
+
+**macOS/Linux:**
 ```bash
-# (tùy chọn) tạo file sqlite trống
-sqlite3 test.db "VACUUM;"
-
-# khởi chạy server (xem bước kế)
+python3 run.py
 ```
 
-# Ghi chú: lệnh sqlite3 VACUUM dùng để tạo/tối ưu file SQLite (test.db) nếu cần
+#### Cách 2: Dùng uvicorn trực tiếp (Cho người dùng nâng cao)
 
----
+**Windows:**
+```cmd
+uvicorn app.main:app --reload
+```
 
-## Chạy server
-
-Chạy bằng uvicorn (hot-reload để dev):
-
+**macOS/Linux:**
 ```bash
 uvicorn app.main:app --reload
 ```
 
-# BlogAPI — Hướng dẫn chạy, kiểm thử và nộp bài (Tiếng Việt)
+### 3. Truy cập API
 
-Tài liệu này mô tả đầy đủ cách cài đặt, chạy, kiểm thử và chuẩn bị project để nộp/submit. Có các lệnh copy/paste để bạn thao tác nhanh.
+Sau khi chạy thành công:
+- API docs: http://127.0.0.1:8000/docs
+- Redoc: http://127.0.0.1:8000/redoc
 
----
+## Xử lý lỗi thường gặp
 
-## Mục lục
-- Yêu cầu môi trường
-- Cài đặt nhanh
-- Biến môi trường (mẫu `.env`)
-- Chạy server
+### Windows
+1. Lỗi "python không được nhận dạng":
+   - Kiểm tra đã tích "Add Python to PATH" khi cài đặt
+   - Thử dùng `py` thay vì `python`
 
-# BlogAPI — Hướng dẫn chạy, kiểm thử 
+2. Lỗi permission khi tạo venv:
+   - Chạy Command Prompt với quyền Administrator
 
-Tóm tắt nhanh (TL;DR):
-- Clone repo, tạo virtualenv, cài `requirements.txt`, chạy `python run.py` hoặc `uvicorn app.main:app --reload` rồi dùng Swagger ở `/docs`.
+### macOS/Linux
+1. Lỗi permission:
+   ```bash
+   sudo chown -R $USER venv/
+   ```
 
----
-```bash
-uvicorn app.main:app --reload
-```
+2. Lỗi không tìm thấy python3:
+   - macOS: `brew install python`
+   - Ubuntu: `sudo apt install python3`
 
-Hoặc dùng script `run.py` nếu bạn muốn:
+### Chung
+1. Lỗi "Module not found":
+   - Kiểm tra đã activate môi trường ảo chưa
+   - Chạy lại `pip install -r requirements.txt`
+
+2. Lỗi port 8000 đã được sử dụng:
+   - Thêm `--port 8001` vào lệnh uvicorn
+   - Hoặc tìm và tắt process đang dùng port 8000
 
 ```bash
 python run.py
