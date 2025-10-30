@@ -1,0 +1,101 @@
+{
+  "info": { "name": "BlogAPI" },
+  "variable": [ { "key": "baseUrl", "value": "http://127.0.0.1:8000" } ],
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"<string>\",\n  \"password\": \"<string>\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth","register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"<string>\",\n  \"password\": \"<string>\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer <token>" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth","logout"] }
+          }
+        },
+        {
+          "name": "Revoke",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer <token>" }],
+            "url": { "raw": "{{baseUrl}}/auth/revoke", "host": ["{{baseUrl}}"], "path": ["auth","revoke"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "blog",
+      "item": [
+        {
+          "name": "Create Blog",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer <token>" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Bài viết\",\n  \"content\": \"Nội dung\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/blog/create", "host": ["{{baseUrl}}"], "path": ["api","blog","create"] }
+          }
+        },
+        {
+          "name": "Get Blog",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/blog/{blog_id}", "host": ["{{baseUrl}}"], "path": ["api","blog","{blog_id}"], "variable": [{"key":"blog_id","value":"1"}] }
+          }
+        },
+        {
+          "name": "Update Blog",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer <token>" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Sửa\",\n  \"content\": \"Nội dung sửa\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/blog/{blog_id}", "host": ["{{baseUrl}}"], "path": ["api","blog","{blog_id}"], "variable": [{"key":"blog_id","value":"1"}] }
+          }
+        },
+        {
+          "name": "Delete Blog",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer <token>" }],
+            "url": { "raw": "{{baseUrl}}/api/blog/{blog_id}", "host": ["{{baseUrl}}"], "path": ["api","blog","{blog_id}"], "variable": [{"key":"blog_id","value":"1"}] }
+          }
+        },
+        {
+          "name": "Upload Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer <token>" }],
+            "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file" }] },
+            "url": { "raw": "{{baseUrl}}/api/blog/upload", "host": ["{{baseUrl}}"], "path": ["api","blog","upload"] }
+          }
+        },
+        {
+          "name": "Search Blogs",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/blog/search?q=Blog", "host": ["{{baseUrl}}"], "path": ["api","blog","search"] }
+          }
+        }
+      ]
+    }
+  ]
+}
+
+ 

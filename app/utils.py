@@ -41,10 +41,26 @@ def error_response(message: str = "Error", code: int = 400) -> dict:
 
 
 def save_upload(file: UploadFile, upload_dir: str = "./uploads") -> str:
-    """Save an UploadFile to the upload_dir and return the saved path."""
+    """Save an UploadFile to a 'received' subfolder and return the relative saved path.
+
+    Behavior changes made to avoid overwriting/accumulating uploaded test files in the
+    top-level `uploads/` directory (which the test runner may read). New files are
+    stored under `uploads/received/` and are given a short UUID-based name that keeps
+    the original extension.
+    """
+    # ensure base upload dir exists, then store received files in a subfolder
     os.makedirs(upload_dir, exist_ok=True)
-    filename = f"{int(datetime.utcnow().timestamp())}_{file.filename}"
-    destination = os.path.join(upload_dir, filename)
+    received_dir = os.path.join(upload_dir, "received")
+    os.makedirs(received_dir, exist_ok=True)
+
+    # preserve extension, but use a short uuid-based filename to keep names short
+    from uuid import uuid4
+    _, ext = os.path.splitext(file.filename)
+    ext = ext or ""
+    filename = f"{uuid4().hex[:8]}{ext}"
+    destination = os.path.join(received_dir, filename)
     with open(destination, "wb") as f:
         f.write(file.file.read())
-    return destination
+
+    # return a relative path (uploads/received/<name>) for storing/displaying
+    return os.path.join("uploads", "received", filename)

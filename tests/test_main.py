@@ -1,4 +1,5 @@
 import sys, os
+import random
 from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -49,28 +50,74 @@ def test_search_blog():
     print("✅ test_search_blog:", response.json())
 
 def test_upload_file():
+    # Ensure token is available so this test can run standalone.
+    # If token is not defined (running this test alone), perform login which will
+    # register+login and set the global `token` used by other tests.
+    try:
+        _ = token
+    except NameError:
+        test_login()
     headers = {"Authorization": f"Bearer {token}"}
-    # Thư mục chứa file test
-    test_files_dir = "tests/test_files"
-    
-    # Kiểm tra có ảnh test không
-    image_files = [f for f in os.listdir(test_files_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))] if os.path.exists(test_files_dir) else []
+    # Prefer images from the project's `uploads/` folder (root), fallback to `tests/test_files`
+    repo_root = os.path.dirname(os.path.dirname(__file__))
+    uploads_dir = os.path.join(repo_root, "uploads")
+    test_files_dir = os.path.join(os.path.dirname(__file__), "test_files")
+
+    # Kiểm tra có ảnh test không (ưu tiên uploads/ của project)
+    image_files = []
+    image_source_dir = None
+    if os.path.exists(uploads_dir):
+        image_files = [f for f in os.listdir(uploads_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        if image_files:
+            image_source_dir = uploads_dir
+
+    if not image_files and os.path.exists(test_files_dir):
+        image_files = [f for f in os.listdir(test_files_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        if image_files:
+            image_source_dir = test_files_dir
     
     if image_files:
-        # Nếu có ảnh, dùng ảnh đầu tiên tìm thấy
-        test_file_name = image_files[0]
-        test_file_path = os.path.join(test_files_dir, test_file_name)
+        # Nếu có ảnh, chọn luân phiên (round-robin) giữa các file để tránh lặp liên tiếp
+        # Sắp xếp danh sách để thứ tự ổn định, sau đó dùng file index lưu ở tests/last_upload_index.txt
+        image_files.sort()
+        index_file = os.path.join(os.path.dirname(__file__), "last_upload_index.txt")
+        try:
+            if os.path.exists(index_file):
+                with open(index_file, "r") as idxf:
+                    idx = int(idxf.read().strip() or 0)
+            else:
+                idx = 0
+        except Exception:
+            idx = 0
+
+        idx = idx % len(image_files)
+        test_file_name = image_files[idx]
+        # cập nhật index cho lần chạy kế tiếp
+        try:
+            with open(index_file, "w") as idxf:
+                idxf.write(str((idx + 1) % len(image_files)))
+        except Exception:
+            pass
+        test_file_path = os.path.join(image_source_dir, test_file_name)
         content_type = "image/jpeg" if test_file_name.lower().endswith(('.jpg', '.jpeg')) else "image/png"
-        print(f"📸 Sử dụng file ảnh: {test_file_name}")
+        print(f"📸 Sử dụng file ảnh: {test_file_name} từ {os.path.relpath(image_source_dir, repo_root)}")
     else:
-        # Nếu không có ảnh, dùng file text
-        test_file_name = "test_upload.txt"
-        test_file_path = "tests/test_upload.txt"
-        content_type = "text/plain"
+        # Nếu không có ảnh, tạo một ảnh PNG placeholder trong thư mục tests/test_files
+        test_files_dir_abs = os.path.join(os.path.dirname(__file__), "test_files")
+        os.makedirs(test_files_dir_abs, exist_ok=True)
+        test_file_name = "test_upload.png"
+        test_file_path = os.path.join(test_files_dir_abs, test_file_name)
+        content_type = "image/png"
+        # 1x1 PNG pixel (base64) — tạo file nếu chưa tồn tại
         if not os.path.exists(test_file_path):
-            print("⚠️ Không tìm thấy file test, tạo file mới...")
-            with open(test_file_path, "w") as f:
-                f.write("This is a test file for upload testing.")
+            print("⚠️ Không tìm thấy file ảnh test, tạo ảnh placeholder PNG...")
+            import base64
+            img_b64 = (
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAA" 
+                "AAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+            )
+            with open(test_file_path, "wb") as f:
+                f.write(base64.b64decode(img_b64))
     with open(test_file_path, "rb") as f:
         response = client.post("/api/blog/upload", 
             files={"file": (test_file_name, f, content_type)}, 
@@ -98,14 +145,14 @@ def test_access_after_revoke():
 
 def export_to_sql():
     """Export database to SQL file"""
-    schema_file = "schema.sql"
-    data_file = "all_test_data.sql"
-    
+    schema_file = "database/schema.sql"
+    data_file = "database/all_test_data.sql"
+
     with open(data_file, "w") as f:
         f.write(f"-- Data từ lần test lúc: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         f.write("-- Bắt đầu transaction\n")
         f.write("BEGIN TRANSACTION;\n\n")
-        
+
         # Blogs
         f.write("-- Blogs\n")
         os.system('sqlite3 test.db ".mode insert" "SELECT * FROM blogs;" > temp.sql')
@@ -113,7 +160,7 @@ def export_to_sql():
             content = temp.read()
             content = content.replace('INSERT INTO "table"', 'INSERT INTO blogs')
             f.write(content + "\n")
-        
+
         # Users
         f.write("-- Users\n")
         os.system('sqlite3 test.db ".mode insert" "SELECT * FROM users;" > temp.sql')
@@ -121,7 +168,7 @@ def export_to_sql():
             content = temp.read()
             content = content.replace('INSERT INTO "table"', 'INSERT INTO users')
             f.write(content + "\n")
-        
+
         # Token blacklist
         f.write("-- Token blacklist\n")
         os.system('sqlite3 test.db ".mode insert" "SELECT * FROM token_blacklist;" > temp.sql')
@@ -129,14 +176,14 @@ def export_to_sql():
             content = temp.read()
             content = content.replace('INSERT INTO "table"', 'INSERT INTO token_blacklist')
             f.write(content + "\n")
-        
+
         f.write("COMMIT;\n\n")
         f.write("-- End of data\n")
-    
+
     # Xóa file tạm
     if os.path.exists("temp.sql"):
         os.remove("temp.sql")
-    
+
     print(f"\n📝 Dữ liệu test đã được lưu vào:")
     print(f"   1. Cấu trúc DB: {schema_file}")
     print(f"   2. Dữ liệu test: {data_file}")
