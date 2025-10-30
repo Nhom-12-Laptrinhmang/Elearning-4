@@ -1,3 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Editor files
+.vscode/
+*.code-workspace
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+
+# Environment variables
+.env
+
+# Database files
+*.db
+*.sqlite3
+test.db
+
+# uploads (runtime files) - exclude large uploaded files from repo
+uploads/
+
+# Logs
+*.log
+
+# pytest cache
+.pytest_cache/
 
 # Python
 __pycache__/
