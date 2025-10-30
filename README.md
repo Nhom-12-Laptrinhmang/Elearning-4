@@ -219,9 +219,56 @@ Sau khi chạy thành công:
    - Kiểm tra đã activate môi trường ảo chưa
    - Chạy lại `pip install -r requirements.txt`
 
-2. Lỗi port 8000 đã được sử dụng:
-   - Thêm `--port 8001` vào lệnh uvicorn
-   - Hoặc tìm và tắt process đang dùng port 8000
+2. Lỗi port 8000 đã được sử dụng (Address already in use):
+   - Nguyên nhân thường thấy: một tiến trình uvicorn/Python khác đang chạy và chiếm cổng 8000 (ví dụ bạn đã mở server ở cửa sổ terminal khác hoặc tiến trình nằm trong background).
+   - Cách kiểm tra và khắc phục (trong macOS / Linux, chạy trong zsh/bash):
+
+```bash
+# 1) Kiểm tra tiến trình đang dùng port 8000
+lsof -i :8000 -n -P
+
+# 2) Xem chi tiết tiến trình (PID ví dụ: 12345)
+ps -p 12345 -o pid,comm,args
+ps aux | grep 12345 | grep -v grep
+
+# 3) Dừng tiến trình an toàn bằng SIGTERM
+kill 12345
+
+# Nếu tiến trình không tắt sau vài giây, dùng SIGKILL (ép dừng):
+kill -9 12345
+
+# 4) (Tuỳ chọn) Dừng theo tên lệnh (cẩn thận nếu có nhiều tiến trình uvicorn)
+pkill -f "uvicorn app.main:app"
+
+# 5) Hoặc chạy server trên cổng khác (không cần dừng tiến trình đang chiếm cổng)
+uvicorn app.main:app --reload --port 8001
+
+# 6) Nếu muốn chạy ở background và ghi log
+nohup uvicorn app.main:app --reload > uvicorn.log 2>&1 &
+echo $!   # show background PID
+tail -f uvicorn.log
+```
+
+Lưu ý an toàn:
+- Trước khi kill, kiểm tra `ps` để đảm bảo PID là tiến trình bạn khởi chạy (tránh kill nhầm tiến trình hệ thống của người khác).
+- Dùng `kill` (SIGTERM) trước; chỉ dùng `kill -9` nếu tiến trình không phản hồi.
+- `pkill -f` có thể dừng nhiều tiến trình; dùng cẩn thận.
+
+Nếu sau khi giải phóng port bạn vẫn không truy cập được, chạy `uvicorn` trong foreground để xem log/traceback (các lỗi import, thiếu `.env`, hoặc lỗi khởi tạo DB sẽ hiển thị ở đây). Ví dụ:
+
+```bash
+uvicorn app.main:app --reload
+# hoặc dùng port khác nếu cần
+# uvicorn app.main:app --reload --port 8001
+```
+
+Nếu cần, bạn có thể copy `.env.example` thành `.env` và kiểm tra đã cài dependencies:
+
+```bash
+cp .env.example .env
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
 ```bash
 python run.py
