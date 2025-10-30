@@ -56,6 +56,77 @@ Tài liệu này hướng dẫn chi tiết cách thiết lập và chạy projec
    ```bash
    pip install -r requirements.txt
    ```
+ 
+---
+
+## Bảng lệnh nhanh (Quick commands)
+
+Đây là bảng các lệnh thường dùng, tách theo Windows và macOS/Linux để copy-paste nhanh.
+
+| Hành động | Windows (Command Prompt / PowerShell) | macOS / Linux (bash/zsh) |
+|---|---:|---:|
+| Tạo virtualenv | `python -m venv venv` | `python3 -m venv venv` |
+| Kích hoạt virtualenv | `venv\\Scripts\\activate` | `source venv/bin/activate` |
+| Cài dependencies | `pip install -r requirements.txt` | `pip install -r requirements.txt` |
+| Chạy (entrypoint) | `python run.py` | `python3 run.py` |
+| Chạy với uvicorn (dev) | `uvicorn app.main:app --reload` | `uvicorn app.main:app --reload` |
+| Chạy test | `pytest -q` | `pytest -q` |
+| Export DB (dump) | `sqlite3 test.db ".dump" > database/all_test_data.sql` | `sqlite3 test.db ".dump" > database/all_test_data.sql` |
+| Zip project (loại trừ venv) | PowerShell: `Compress-Archive -Path * -DestinationPath project.zip -Force -Exclude venv\\*` | `zip -r project.zip . -x "venv/*" ".venv/*" ".DS_Store"` |
+
+Gợi ý khi zip để gửi sang Windows/macOS:
+- Loại trừ thư mục `venv` hoặc `.venv` để tránh upload dependency nặng.
+- Loại bỏ file hệ thống như `.DS_Store` (macOS) trước khi zip: `find . -name '.DS_Store' -delete`.
+- Trên Windows, dùng PowerShell `Compress-Archive` hoặc 7-Zip để giải nén ổn định.
+
+---
+
+## Cấu trúc dự án (Project tree)
+
+Dưới đây là cấu trúc thư mục chính (phiên bản rút gọn). Mô tả nhanh mục đích từng phần.
+
+```text
+openapi.json                 # OpenAPI spec (generated)
+README.md                    # Hướng dẫn (this file)
+requirements.txt             # Python dependencies
+run.py                       # Entrypoint script để chạy app (cross-platform)
+
+app/                         # Source code chính (FastAPI app)
+   config.py                  # Cấu hình ứng dụng
+   database.py                # Kết nối DB / helper
+   main.py                    # ASGI app (uvicorn) / routes mount
+   models.py                  # ORM / models
+   response.py                # helpers response
+   schemas.py                 # Pydantic schemas
+   utils.py                   # tiện ích chung
+   routers/
+      auth.py                  # routes auth (login/register/logout)
+      blog.py                  # routes blog
+   services/
+      auth_service.py          # logic auth (create user, verify)
+      blog_service.py          # logic blog
+      token_blacklist.py       # blacklist / revoke token
+
+database/                    # database helpers and SQL dumps
+   all_test_data.sql           # (auto-generated) dump test DB
+   seed.py                     # seed scripts
+
+postman/                     # Postman collection(s)
+   postman.json
+
+tests/                       # Test suite (pytest)
+   conftest.py
+   test_main.py
+
+uploads/                     # uploaded files (runtime)
+   received/
+
+```
+
+Ghi chú:
+- Nếu bạn gửi project cho người dùng Windows, tốt nhất là xóa `venv/` và `.DS_Store`, sau đó zip toàn bộ thư mục project.
+- Để giữ file quyền thực thi trên macOS/Linux (nếu có script), người nhận Windows sẽ không cần quyền này — chỉ cần dùng Python để chạy.
+
 
 ### Linux (Ubuntu/Debian)
 
